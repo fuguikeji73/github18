@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>图片滑动展示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+        
+        .slider {
+            display: flex;
+            height: 100vh;
+            transition: transform 0.3s ease-out;
+        }
+        
+        .slide {
+            min-width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+        
+        .slide img {
+            max-width: 100%;
+            max-height: 100vh;
+            object-fit: contain;
+        }
+        
+        .counter {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            z-index: 100;
+        }
+        
+        .hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="counter">1 / 1</div>
+    <div class="hint">左右滑动切换图片</div>
+
+    <!-- 
+    ========== 修改这里：填入你的图片路径 ==========
+    在 images 数组中添加图片路径，每行一个
+    支持格式：jpg, jpeg, png, gif, webp
+    路径示例：
+      - 本地绝对路径：file:///C:/Users/Administrator/Pictures/photo.jpg
+      - 相对路径（与html同目录）：./images/photo1.jpg 或 images/photo1.jpg
+      - 网络图片：https://example.com/photo.jpg
+    -->
+    
+    <div class="slider" id="slider">
+        <!-- 图片将通过JavaScript动态插入 -->
+    </div>
+
+    <script>
+        // ========== 在这里填入你的图片路径 ==========
+        const images = [
+            './images/ajh1.jpg',
+            './images/ajh2.jpg',      // 第一张图片
+            './images/ajh3.jpg',
+
+     // 第三张图片
+            // 继续添加更多图片...
+        ];
+        // ============================================
+        
+        const slider = document.getElementById('slider');
+        const counter = document.querySelector('.counter');
+        let currentIndex = 0;
+        let startX = 0;
+        let isDragging = false;
+        
+        // 渲染图片
+        function renderImages() {
+            if (images.length === 0) {
+                slider.innerHTML = '<div class="slide"><span style="color:#666;">请在代码中添加图片路径</span></div>';
+                return;
+            }
+            
+            slider.innerHTML = images.map((src, i) => `
+                <div class="slide">
+                    <img src="${src}" alt="图片${i+1}" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'color:#666;\'>图片${i+1}加载失败</span>'">
+                </div>
+            `).join('');
+            
+            updateCounter();
+        }
+        
+        // 更新计数器
+        function updateCounter() {
+            counter.textContent = `${currentIndex + 1} / ${images.length}`;
+        }
+        
+        // 切换到指定图片
+        function goToSlide(index) {
+            if (index < 0) index = images.length - 1;
+            if (index >= images.length) index = 0;
+            currentIndex = index;
+            slider.style.transform = `translateX(-${currentIndex * 100}vw)`;
+            updateCounter();
+        }
+        
+        // 下一张
+        function next() {
+            goToSlide(currentIndex + 1);
+        }
+        
+        // 上一张
+        function prev() {
+            goToSlide(currentIndex - 1);
+        }
+        
+        // 触摸滑动支持
+        document.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+            
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    next(); // 左滑，下一张
+                } else {
+                    prev(); // 右滑，上一张
+                }
+            }
+        });
+        
+        // 鼠标拖拽支持
+        document.addEventListener('mousedown', (e) => {
+            startX = e.clientX;
+            isDragging = true;
+        });
+        
+        document.addEventListener('mouseup', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const endX = e.clientX;
+            const diff = startX - endX;
+            
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    next();
+                } else {
+                    prev();
+                }
+            }
+        });
+        
+        // 键盘支持
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prev();
+            if (e.key === 'ArrowRight') next();
+        });
+        
+        // 初始化
+        renderImages();
+    </script>
+</body>
+</html>
