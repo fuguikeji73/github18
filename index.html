@@ -94,7 +94,86 @@
             <img src="./skin/lb.png" class="responsive-img">
 
             <div class="cont-box" style="margin-top: -18px;">
+<style>
+        /* 计数器样式，可根据你的页面调整 */
+        .view-count {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f3d9d9;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        .label {
+            font-size: 16px;
+            color: #ffffff;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 显示容器 -->
+    <span class="label">当前浏览人数：</span>
+    <span id="viewCounter" class="view-count"></span>
 
+    <script>
+        // ===== 配置项（根据需求修改）=====
+        const config = {
+            min: 500,        // 最低人数
+            max: 1500,        // 最高人数
+            initial: 899,    // 初始显示人数（需在 min-max 之间）
+            smallTickMs: 600, // 小幅跳动间隔（毫秒）
+            bigJumpMs: 3000,  // 大幅跳变间隔（毫秒）
+            smallRange: 5,    // 小幅跳动幅度（±n）
+            bigRange: 50      // 大幅跳变幅度（±n）
+        };
+
+        // ===== 核心逻辑 =====
+        let current = config.initial;
+        const counterEl = document.getElementById('viewCounter');
+        let smallTimer = null;
+        let bigTimer = null;
+        let isPageVisible = true;
+
+        // 千位分隔符格式化
+        const formatNum = (num) => num.toLocaleString('zh-CN');
+
+        // 初始化显示
+        counterEl.textContent = formatNum(current);
+
+        // 小幅跳动：在当前值附近±smallRange浮动，不越界
+        const smallTick = () => {
+            if (!isPageVisible) return;
+            const delta = Math.floor(Math.random() * (config.smallRange * 2 + 1)) - config.smallRange;
+            const newVal = Math.max(config.min, Math.min(config.max, current + delta));
+            if (newVal !== current) {
+                current = newVal;
+                counterEl.textContent = formatNum(current);
+            }
+        };
+
+        // 大幅跳变：随机跳变±bigRange，不越界
+        const bigJump = () => {
+            if (!isPageVisible) return;
+            const delta = Math.floor(Math.random() * (config.bigRange * 2 + 1)) - config.bigRange;
+            const newVal = Math.max(config.min, Math.min(config.max, current + delta));
+            current = newVal;
+            counterEl.textContent = formatNum(current);
+        };
+
+        // 页面可见性监听：切走暂停，切回恢复
+        document.addEventListener('visibilitychange', () => {
+            isPageVisible = document.visibilityState === 'visible';
+        });
+
+        // 启动定时器
+        smallTimer = setInterval(smallTick, config.smallTickMs);
+        bigTimer = setInterval(bigJump, config.bigJumpMs);
+
+        // 清理定时器（可选：页面卸载时执行）
+        window.addEventListener('beforeunload', () => {
+            clearInterval(smallTimer);
+            clearInterval(bigTimer);
+        });
+    </script>
                 <div class="notice-bar">
                     <img class="img" src="./skin/icon1.png">
                     <div class="msg-bar">
